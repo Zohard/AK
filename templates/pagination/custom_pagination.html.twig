@@ -1,0 +1,284 @@
+{#
+/**
+ * Custom Pagination Template - Modern and Stylish Design
+ * Responsive pagination with icons and smooth transitions
+ */
+#}
+
+{% if pageCount > 1 %}
+<nav aria-label="Navigation des pages" class="mt-4">
+    <div class="pagination-wrapper">
+        {# Page info #}
+        <div class="pagination-info d-flex justify-content-center mb-3">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                Page {{ current }} sur {{ pageCount }} 
+                ({{ totalCount }} résultat{{ totalCount > 1 ? 's' : '' }})
+            </small>
+        </div>
+        
+        {# Pagination controls #}
+        <ul class="pagination pagination-custom justify-content-center">
+            {# First page #}
+            {% if current > 1 %}
+                <li class="page-item">
+                    <a class="page-link page-link-first" href="{{ path(route, query|merge({(pageParameterName): 1})) }}" 
+                       title="Première page" aria-label="Première page">
+                        <i class="fas fa-angle-double-left"></i>
+                        <span class="d-none d-sm-inline ms-1">Première</span>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {# Previous page #}
+            {% if previous is defined %}
+                <li class="page-item">
+                    <a class="page-link page-link-prev" href="{{ path(route, query|merge({(pageParameterName): previous})) }}" 
+                       title="Page précédente" aria-label="Page précédente">
+                        <i class="fas fa-chevron-left"></i>
+                        <span class="d-none d-md-inline ms-1">Précédent</span>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {# Page numbers #}
+            {% for page in pagesInRange %}
+                {% if page != current %}
+                    <li class="page-item">
+                        <a class="page-link page-link-number" href="{{ path(route, query|merge({(pageParameterName): page})) }}"
+                           title="Page {{ page }}">
+                            {{ page }}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item active">
+                        <span class="page-link page-link-current">
+                            {{ page }}
+                            <span class="sr-only">(page actuelle)</span>
+                        </span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {# Next page #}
+            {% if next is defined %}
+                <li class="page-item">
+                    <a class="page-link page-link-next" href="{{ path(route, query|merge({(pageParameterName): next})) }}" 
+                       title="Page suivante" aria-label="Page suivante">
+                        <span class="d-none d-md-inline me-1">Suivant</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {# Last page #}
+            {% if current < pageCount %}
+                <li class="page-item">
+                    <a class="page-link page-link-last" href="{{ path(route, query|merge({(pageParameterName): pageCount})) }}" 
+                       title="Dernière page" aria-label="Dernière page">
+                        <span class="d-none d-sm-inline me-1">Dernière</span>
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+        
+        {# Quick jump for large pagination #}
+        {% if pageCount > 10 %}
+            <div class="pagination-jump d-flex justify-content-center mt-3">
+                <div class="input-group" style="max-width: 200px;">
+                    <input type="number" class="form-control form-control-sm text-center" 
+                           id="page-jump" min="1" max="{{ pageCount }}" value="{{ current }}"
+                           placeholder="Page">
+                    <button class="btn btn-outline-primary btn-sm" type="button" id="jump-btn">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</nav>
+
+{# Custom CSS for better pagination styling #}
+<style>
+.pagination-custom {
+    --bs-pagination-padding-x: 0.75rem;
+    --bs-pagination-padding-y: 0.5rem;
+    --bs-pagination-font-size: 0.875rem;
+    --bs-pagination-color: #6c757d;
+    --bs-pagination-bg: #fff;
+    --bs-pagination-border-width: 1px;
+    --bs-pagination-border-color: #dee2e6;
+    --bs-pagination-border-radius: 0.375rem;
+    --bs-pagination-hover-color: #0d6efd;
+    --bs-pagination-hover-bg: #e9ecef;
+    --bs-pagination-focus-color: #0d6efd;
+    --bs-pagination-focus-bg: #e9ecef;
+    --bs-pagination-focus-box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    --bs-pagination-active-color: #fff;
+    --bs-pagination-active-bg: #0d6efd;
+    --bs-pagination-active-border-color: #0d6efd;
+    --bs-pagination-disabled-color: #6c757d;
+    --bs-pagination-disabled-bg: #fff;
+    --bs-pagination-disabled-border-color: #dee2e6;
+    gap: 0.25rem;
+}
+
+.pagination-custom .page-item:first-child .page-link {
+    border-top-left-radius: var(--bs-pagination-border-radius);
+    border-bottom-left-radius: var(--bs-pagination-border-radius);
+}
+
+.pagination-custom .page-item:last-child .page-link {
+    border-top-right-radius: var(--bs-pagination-border-radius);
+    border-bottom-right-radius: var(--bs-pagination-border-radius);
+}
+
+.pagination-custom .page-link {
+    position: relative;
+    display: block;
+    padding: var(--bs-pagination-padding-y) var(--bs-pagination-padding-x);
+    font-size: var(--bs-pagination-font-size);
+    color: var(--bs-pagination-color);
+    text-decoration: none;
+    background-color: var(--bs-pagination-bg);
+    border: var(--bs-pagination-border-width) solid var(--bs-pagination-border-color);
+    border-radius: var(--bs-pagination-border-radius);
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.pagination-custom .page-link:hover {
+    z-index: 2;
+    color: var(--bs-pagination-hover-color);
+    background-color: var(--bs-pagination-hover-bg);
+    border-color: var(--bs-pagination-border-color);
+    transform: translateY(-1px);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.pagination-custom .page-link:focus {
+    z-index: 3;
+    color: var(--bs-pagination-focus-color);
+    background-color: var(--bs-pagination-focus-bg);
+    outline: 0;
+    box-shadow: var(--bs-pagination-focus-box-shadow);
+}
+
+.pagination-custom .page-item.active .page-link {
+    z-index: 3;
+    color: var(--bs-pagination-active-color);
+    background-color: var(--bs-pagination-active-bg);
+    border-color: var(--bs-pagination-active-border-color);
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.pagination-custom .page-item.disabled .page-link {
+    color: var(--bs-pagination-disabled-color);
+    pointer-events: none;
+    background-color: var(--bs-pagination-disabled-bg);
+    border-color: var(--bs-pagination-disabled-border-color);
+}
+
+.page-link-first, .page-link-last {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    border: none;
+    font-weight: 500;
+}
+
+.page-link-first:hover, .page-link-last:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    color: white !important;
+}
+
+.page-link-prev, .page-link-next {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white !important;
+    border: none;
+    font-weight: 500;
+}
+
+.page-link-prev:hover, .page-link-next:hover {
+    background: linear-gradient(135deg, #3d8bfe 0%, #00d4fe 100%);
+    color: white !important;
+}
+
+.page-link-current {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: white !important;
+    border: none;
+    font-weight: 600;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.page-link-number:hover {
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    color: #495057 !important;
+    border-color: transparent;
+}
+
+.pagination-info {
+    background: rgba(13, 110, 253, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    display: inline-block;
+}
+
+.pagination-jump .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+@media (max-width: 576px) {
+    .pagination-custom {
+        --bs-pagination-padding-x: 0.5rem;
+        --bs-pagination-padding-y: 0.375rem;
+        --bs-pagination-font-size: 0.75rem;
+    }
+    
+    .pagination-custom .page-link {
+        min-width: 2.5rem;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .pagination-jump {
+        margin-top: 1rem !important;
+    }
+}
+</style>
+
+{# JavaScript for quick jump functionality #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const jumpInput = document.getElementById('page-jump');
+    const jumpBtn = document.getElementById('jump-btn');
+    
+    if (jumpInput && jumpBtn) {
+        function jumpToPage() {
+            const page = parseInt(jumpInput.value);
+            const maxPage = {{ pageCount }};
+            
+            if (page >= 1 && page <= maxPage && page !== {{ current }}) {
+                const currentUrl = new URL(window.location);
+                currentUrl.searchParams.set('{{ pageParameterName }}', page);
+                window.location.href = currentUrl.toString();
+            }
+        }
+        
+        jumpBtn.addEventListener('click', jumpToPage);
+        jumpInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                jumpToPage();
+            }
+        });
+        
+        // Auto-select on focus for better UX
+        jumpInput.addEventListener('focus', function() {
+            this.select();
+        });
+    }
+});
+</script>
+{% endif %}

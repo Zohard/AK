@@ -1,0 +1,337 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ anime.titre }} - {{ parent() }}{% endblock %}
+
+{% block meta_description %}{{ anime.synopsis ? anime.synopsis[:160] : 'Découvrez ' ~ anime.titre ~ ' sur Anime-Kun' }}{% endblock %}
+
+{% block og_title %}{{ anime.titre }} - Anime-Kun{% endblock %}
+{% block og_description %}{{ anime.synopsis ? anime.synopsis[:160] : 'Découvrez ' ~ anime.titre ~ ' sur Anime-Kun' }}{% endblock %}
+{% block og_image %}{{ anime.image ? absolute_url(asset(anime.image)) : '' }}{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    {# Breadcrumb #}
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_homepage') }}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('anime_index') }}">Animes</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ anime.titre }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        {# Main Content #}
+        <div class="col-lg-8">
+            {# Anime Header #}
+            <div class="card mb-4">
+                <div class="row g-0">
+                    <div class="col-md-4">
+                        {% if anime.image %}
+                            <img src="{{ asset(anime.image) }}" class="img-fluid rounded-start h-100 object-fit-cover" 
+                                 alt="{{ anime.titre }}" style="min-height: 300px;">
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center rounded-start h-100" 
+                                 style="min-height: 300px;">
+                                <i class="fas fa-image fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body h-100 d-flex flex-column">
+                            <h1 class="card-title h3 mb-3">{{ anime.titre }}</h1>
+                            
+                            {% if anime.titreOriginal %}
+                                <h2 class="h6 text-muted mb-3">{{ anime.titreOriginal }}</h2>
+                            {% endif %}
+
+                            {# Rating and Stats #}
+                            <div class="row mb-3">
+                                {% if anime.noteGenerale %}
+                                    <div class="col-auto">
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-primary fs-6 me-2">{{ anime.noteGenerale }}/10</span>
+                                            {% if anime.nbVotes %}
+                                                <small class="text-muted">({{ anime.nbVotes }} vote{{ anime.nbVotes > 1 ? 's' : '' }})</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {# Quick Info #}
+                            <div class="row g-2 mb-3">
+                                {% if anime.annee %}
+                                    <div class="col-auto">
+                                        <span class="badge bg-outline-secondary">
+                                            <i class="fas fa-calendar me-1"></i>{{ anime.annee }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                {% if anime.nbEpisodes %}
+                                    <div class="col-auto">
+                                        <span class="badge bg-outline-secondary">
+                                            <i class="fas fa-play me-1"></i>{{ anime.nbEpisodes }} épisode{{ anime.nbEpisodes > 1 ? 's' : '' }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                {% if anime.statut %}
+                                    <div class="col-auto">
+                                        <span class="badge bg-outline-secondary">
+                                            <i class="fas fa-info-circle me-1"></i>{{ anime.statut }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {# Genres #}
+                            {% if anime.genre %}
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2">Genres :</h6>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for genre in anime.genre|split(',') %}
+                                            <a href="{{ path('anime_by_genre', {genre: genre|trim|lower}) }}" 
+                                               class="badge bg-secondary text-decoration-none">{{ genre|trim }}</a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            {# Action Buttons #}
+                            <div class="mt-auto">
+                                <div class="d-flex gap-2 flex-wrap">
+                                    {% if is_granted('ROLE_USER') %}
+                                        <button class="btn btn-primary btn-sm">
+                                            <i class="fas fa-plus me-1"></i>Ajouter à ma liste
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-star me-1"></i>Noter
+                                        </button>
+                                    {% endif %}
+                                    <button class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-share me-1"></i>Partager
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Synopsis #}
+            {% if anime.synopsis %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title h5">
+                            <i class="fas fa-book-open me-2"></i>Synopsis
+                        </h3>
+                        <p class="card-text">{{ anime.synopsis|nl2br }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Screenshots #}
+            {% if screenshots is not empty %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title h5">
+                            <i class="fas fa-images me-2"></i>Captures d'écran
+                        </h3>
+                        <div class="row g-2">
+                            {% for screenshot in screenshots %}
+                                <div class="col-md-4 col-sm-6">
+                                    <img src="{{ asset(screenshot.imagePath) }}" class="img-fluid rounded" 
+                                         alt="Screenshot {{ loop.index }}">
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Reviews/Critiques #}
+            {% if critiques is not empty %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title h5">
+                            <i class="fas fa-comments me-2"></i>Critiques de la communauté
+                        </h3>
+                        {% for critique in critiques %}
+                            <div class="border-bottom pb-3 mb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="mb-1">{{ critique.titre }}</h6>
+                                        <small class="text-muted">
+                                            Par {{ critique.user.username }} 
+                                            le {{ critique.dateCreation|date('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                    {% if critique.note %}
+                                        <span class="badge bg-primary">{{ critique.note }}/10</span>
+                                    {% endif %}
+                                </div>
+                                <p class="mb-0">{{ critique.contenu[:200] }}{% if critique.contenu|length > 200 %}...{% endif %}</p>
+                                <a href="{{ path('critique_show', {id: critique.id}) }}" class="btn btn-sm btn-outline-primary mt-2">
+                                    Lire la suite
+                                </a>
+                            </div>
+                        {% endfor %}
+                        
+                        {% if is_granted('ROLE_USER') %}
+                            <a href="{{ path('critique_create', {anime: anime.id}) }}" class="btn btn-success">
+                                <i class="fas fa-pen me-1"></i>Écrire une critique
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="card mb-4">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Aucune critique</h5>
+                        <p class="card-text text-muted">Soyez le premier à partager votre avis sur cet anime !</p>
+                        {% if is_granted('ROLE_USER') %}
+                            <a href="{{ path('critique_create', {anime: anime.id}) }}" class="btn btn-success">
+                                <i class="fas fa-pen me-1"></i>Écrire la première critique
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        {# Sidebar #}
+        <div class="col-lg-4">
+            {# Details Card #}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-info-circle me-2"></i>Informations
+                    </h5>
+                    
+                    <table class="table table-sm">
+                        {% if anime.annee %}
+                            <tr>
+                                <td><strong>Année :</strong></td>
+                                <td>{{ anime.annee }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if anime.nbEpisodes %}
+                            <tr>
+                                <td><strong>Épisodes :</strong></td>
+                                <td>{{ anime.nbEpisodes }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if anime.statut %}
+                            <tr>
+                                <td><strong>Statut :</strong></td>
+                                <td>{{ anime.statut }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if anime.studio %}
+                            <tr>
+                                <td><strong>Studio :</strong></td>
+                                <td>{{ anime.studio }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if anime.realisateur %}
+                            <tr>
+                                <td><strong>Réalisateur :</strong></td>
+                                <td>{{ anime.realisateur }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if anime.dateAjout %}
+                            <tr>
+                                <td><strong>Ajouté le :</strong></td>
+                                <td>{{ anime.dateAjout|date('d/m/Y') }}</td>
+                            </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
+            {# Similar Animes #}
+            {% if similar_animes is not empty %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-thumbs-up me-2"></i>Animes similaires
+                        </h5>
+                        {% for similar in similar_animes %}
+                            <div class="d-flex mb-3">
+                                {% if similar.image %}
+                                    <img src="{{ asset(similar.image) }}" class="rounded me-3" 
+                                         style="width: 60px; height: 80px; object-fit: cover;" alt="{{ similar.titre }}">
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <a href="{{ path('anime_show', {slug: similar.slug}) }}" 
+                                           class="text-decoration-none">{{ similar.titre }}</a>
+                                    </h6>
+                                    {% if similar.noteGenerale %}
+                                        <span class="badge bg-primary badge-sm">{{ similar.noteGenerale }}/10</span>
+                                    {% endif %}
+                                    {% if similar.annee %}
+                                        <small class="text-muted d-block">{{ similar.annee }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Quick Actions #}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-cogs me-2"></i>Actions rapides
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('anime_index') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list me-1"></i>Tous les animes
+                        </a>
+                        <a href="{{ path('anime_top') }}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-trophy me-1"></i>Top animes
+                        </a>
+                        {% if anime.genre %}
+                            {% set firstGenre = anime.genre|split(',')|first|trim|lower %}
+                            <a href="{{ path('anime_by_genre', {genre: firstGenre}) }}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-tags me-1"></i>Plus de {{ firstGenre }}
+                            </a>
+                        {% endif %}
+                        {% if anime.annee %}
+                            <a href="{{ path('anime_by_year', {year: anime.annee}) }}" class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-calendar me-1"></i>Animes {{ anime.annee }}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Custom CSS for better styling #}
+<style>
+.badge.bg-outline-secondary {
+    background-color: transparent !important;
+    border: 1px solid #6c757d;
+    color: #6c757d;
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.badge-sm {
+    font-size: 0.75em;
+}
+
+@media (max-width: 768px) {
+    .card .row.g-0 .col-md-4 img {
+        height: 200px;
+        width: 100%;
+        object-fit: cover;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Anime-Kun - Base de données Anime et Manga{% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>🎌</text></svg>">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{% block meta_description %}Base de données complète d'animes et mangas avec critiques, notes et recommandations de la communauté.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}anime, manga, critiques, base de données, japonais, otaku{% endblock %}">
+    
+    {# Open Graph #}
+    <meta property="og:title" content="{% block og_title %}{{ block('title') }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ block('meta_description') }}{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{{ app.request.uri }}">
+    <meta property="og:image" content="{% block og_image %}{{ absolute_url(asset('images/logo-og.png')) }}{% endblock %}">
+    
+    {# CSS #}
+    {% block stylesheets %}
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    {% endblock %}
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+    {# Header #}
+    <header class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{{ path('app_homepage') }}">
+                <i class="fas fa-star me-2"></i>Anime-Kun
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="animeDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-tv me-1"></i>Animes
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ path('anime_index') }}">Tous les animes</a></li>
+                            <li><a class="dropdown-item" href="{{ path('anime_top') }}">Top animes</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ path('anime_by_season', {season: 'automne', year: 'now'|date('Y')}) }}">Saison actuelle</a></li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="mangaDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-book me-1"></i>Mangas
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ path('manga_index') }}">Tous les mangas</a></li>
+                            <li><a class="dropdown-item" href="{{ path('manga_top') }}">Top mangas</a></li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_stats') }}">
+                            <i class="fas fa-chart-bar me-1"></i>Statistiques
+                        </a>
+                    </li>
+                </ul>
+                
+                {# Search Form #}
+                <form class="d-flex me-3" method="GET" action="{{ path('search_global') }}">
+                    <div class="input-group">
+                        <input class="form-control" type="search" name="q" placeholder="Rechercher..." value="{{ app.request.query.get('q') }}">
+                        <button class="btn btn-outline-light" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+                
+                {# User Menu #}
+                <ul class="navbar-nav">
+                    {% if app.user %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i>{{ app.user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{{ path('user_profile') }}">Mon profil</a></li>
+                                <li><a class="dropdown-item" href="{{ path('user_anime_list') }}">Ma liste d'animes</a></li>
+                                <li><a class="dropdown-item" href="{{ path('user_manga_list') }}">Ma liste de mangas</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <li><a class="dropdown-item" href="{{ path('admin_dashboard') }}">Administration</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="{{ path('app_logout') }}">Déconnexion</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_login') }}">
+                                <i class="fas fa-sign-in-alt me-1"></i>Connexion
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ path('app_register') }}">
+                                <i class="fas fa-user-plus me-1"></i>Inscription
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    {# Flash Messages #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                <i class="fas fa-{{ label == 'success' ? 'check-circle' : (label == 'error' ? 'exclamation-triangle' : 'info-circle') }} me-2"></i>
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    {# Main Content #}
+    <main>
+        {% block body %}{% endblock %}
+    </main>
+
+    {# Footer #}
+    <footer class="bg-dark text-light mt-5">
+        <div class="container py-5">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><i class="fas fa-star me-2"></i>Anime-Kun</h5>
+                    <p class="text-muted">
+                        La référence francophone pour découvrir, noter et critiquer vos animes et mangas préférés.
+                    </p>
+                </div>
+                
+                <div class="col-md-2">
+                    <h6>Animes</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ path('anime_index') }}" class="text-muted text-decoration-none">Tous les animes</a></li>
+                        <li><a href="{{ path('anime_top') }}" class="text-muted text-decoration-none">Top animes</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-2">
+                    <h6>Mangas</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ path('manga_index') }}" class="text-muted text-decoration-none">Tous les mangas</a></li>
+                        <li><a href="{{ path('manga_top') }}" class="text-muted text-decoration-none">Top mangas</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-2">
+                    <h6>Communauté</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ path('critiques_index') }}" class="text-muted text-decoration-none">Critiques</a></li>
+                        <li><a href="{{ path('users_index') }}" class="text-muted text-decoration-none">Membres</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-2">
+                    <h6>Aide</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ path('app_about') }}" class="text-muted text-decoration-none">À propos</a></li>
+                        <li><a href="{{ path('app_contact') }}" class="text-muted text-decoration-none">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        © {{ 'now'|date('Y') }} Anime-Kun. Tous droits réservés.
+                    </small>
+                </div>
+                <div class="col-md-6 text-end">
+                    <small class="text-muted">
+                        Fait avec <i class="fas fa-heart text-danger"></i> pour la communauté otaku
+                    </small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {# JavaScript #}
+    {% block javascripts %}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% endblock %}
+</body>
+</html>

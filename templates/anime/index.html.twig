@@ -1,0 +1,309 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Animes - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Liste des Animes</h1>
+        <div class="d-flex align-items-center gap-3">
+            {% if pagination.totalItemCount is defined %}
+                <span class="badge bg-primary">{{ pagination.totalItemCount }} animes</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Search Bar #}
+    <div class="row mb-4">
+        <div class="col-12">
+            <form method="GET" class="d-flex gap-2">
+                <div class="flex-grow-1">
+                    <input type="text" name="search" class="form-control form-control-lg" 
+                           placeholder="Rechercher un anime..." value="{{ search }}"
+                           style="border-radius: 25px;">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg px-4" style="border-radius: 25px;">
+                    <i class="fas fa-search"></i>
+                </button>
+                {% if search or genre or year or letter or sort != 'date_desc' %}
+                    <a href="{{ path('anime_index') }}" class="btn btn-outline-secondary btn-lg" style="border-radius: 25px;">
+                        <i class="fas fa-times"></i>
+                    </a>
+                {% endif %}
+                {# Hidden fields to preserve filters #}
+                {% if genre %}
+                    <input type="hidden" name="genre" value="{{ genre }}">
+                {% endif %}
+                {% if year %}
+                    <input type="hidden" name="year" value="{{ year }}">
+                {% endif %}
+                {% if letter %}
+                    <input type="hidden" name="letter" value="{{ letter }}">
+                {% endif %}
+                {% if sort %}
+                    <input type="hidden" name="sort" value="{{ sort }}">
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    {# Alphabetical Filter #}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body py-3">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="fw-bold me-2">Filtrer par lettre:</span>
+                        
+                        {# Special filters #}
+                        <a href="{{ path('anime_index', {search: search, genre: genre, year: year, sort: 'just_added'}) }}" 
+                           class="btn btn-sm {{ sort == 'just_added' ? 'btn-success' : 'btn-outline-success' }}">
+                            Nouveautés
+                        </a>
+                        
+                        <a href="{{ path('anime_index', {search: search, genre: genre, year: year, letter: '#', sort: sort}) }}" 
+                           class="btn btn-sm {{ letter == '#' ? 'btn-primary' : 'btn-outline-primary' }}">#</a>
+                        
+                        {# Alphabet #}
+                        {% for l in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'|split('') %}
+                            <a href="{{ path('anime_index', {search: search, genre: genre, year: year, letter: l, sort: sort}) }}" 
+                               class="btn btn-sm {{ letter == l ? 'btn-primary' : 'btn-outline-primary' }}">{{ l }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9">
+            {# Sort and View Options #}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted">Trier par:</span>
+                    <select class="form-select form-select-sm" style="width: auto;" onchange="changeSortOrder(this.value)">
+                        <option value="date_desc" {{ sort == 'date_desc' ? 'selected' : '' }}>Plus récents</option>
+                        <option value="date_asc" {{ sort == 'date_asc' ? 'selected' : '' }}>Plus anciens</option>
+                        <option value="title_asc" {{ sort == 'title_asc' ? 'selected' : '' }}>Titre A-Z</option>
+                        <option value="title_desc" {{ sort == 'title_desc' ? 'selected' : '' }}>Titre Z-A</option>
+                        <option value="year_desc" {{ sort == 'year_desc' ? 'selected' : '' }}>Année décroissante</option>
+                        <option value="year_asc" {{ sort == 'year_asc' ? 'selected' : '' }}>Année croissante</option>
+                        <option value="rating_desc" {{ sort == 'rating_desc' ? 'selected' : '' }}>Mieux notés</option>
+                    </select>
+                </div>
+                
+                {# Active filters display #}
+                {% if search or genre or year or letter %}
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small">Filtres actifs:</span>
+                        {% if search %}
+                            <span class="badge bg-info">Recherche: {{ search }}</span>
+                        {% endif %}
+                        {% if genre %}
+                            <span class="badge bg-warning">Genre: {{ genre }}</span>
+                        {% endif %}
+                        {% if year %}
+                            <span class="badge bg-secondary">Année: {{ year }}</span>
+                        {% endif %}
+                        {% if letter %}
+                            <span class="badge bg-primary">Lettre: {{ letter }}</span>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Anime Grid #}
+            {% if pagination.items %}
+                <div class="row">
+                    {% for anime in pagination.items %}
+                        <div class="col-md-6 col-xl-4 mb-4">
+                            <div class="card h-100 anime-card">
+                                <div class="row g-0 h-100">
+                                    <div class="col-4">
+                                        {% if anime.image %}
+                                            <img src="{{ asset('images/anime/covers/' ~ anime.image) }}" 
+                                                 class="img-fluid rounded-start h-100" 
+                                                 alt="{{ anime.titre }}"
+                                                 style="width: 100%; height: 200px; object-fit: cover;">
+                                        {% else %}
+                                            <div class="bg-light d-flex align-items-center justify-content-center rounded-start h-100" 
+                                                 style="height: 200px;">
+                                                <i class="fas fa-image fa-2x text-muted"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-8">
+                                        <div class="card-body p-3 d-flex flex-column h-100">
+                                            <h6 class="card-title mb-2">
+                                                <a href="{{ path('anime_show', {slug: anime.slug}) }}" 
+                                                   class="text-decoration-none text-dark">{{ anime.titre }}</a>
+                                            </h6>
+                                            
+                                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                                {% if anime.annee %}
+                                                    <span class="badge bg-secondary">{{ anime.annee }}</span>
+                                                {% endif %}
+                                                {% if anime.nbEpisodes %}
+                                                    <span class="badge bg-info">{{ anime.nbEpisodes }}ep</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            {# TODO: Implement genre display using tag relationships
+                                            {% if anime.genre %}
+                                                <div class="mb-2">
+                                                    {% set genres = anime.genre|split(',') %}
+                                                    {% for genre in genres|slice(0, 2) %}
+                                                        <a href="{{ path('anime_index', {genre: genre|trim, search: search, year: year, letter: letter, sort: sort}) }}" 
+                                                           class="badge bg-light text-dark text-decoration-none">{{ genre|trim }}</a>
+                                                    {% endfor %}
+                                                    {% if genres|length > 2 %}
+                                                        <span class="badge bg-light text-muted">+{{ genres|length - 2 }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                            #}
+                                            
+                                            <div class="mt-auto d-flex justify-content-between align-items-end">
+                                                {% if anime.statut %}
+                                                    <small class="text-muted">{{ anime.statut }}</small>
+                                                {% endif %}
+                                                {% if anime.noteGenerale %}
+                                                    <small class="text-warning">
+                                                        <i class="fas fa-star"></i> {{ anime.noteGenerale }}/10
+                                                    </small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                {# Pagination #}
+                {% if pagination.pageCount > 1 %}
+                    <div class="d-flex justify-content-center mt-4">
+                        {{ knp_pagination_render(pagination) }}
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tv fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Aucun anime trouvé</h4>
+                    {% if search or genre or year or letter %}
+                        <p class="text-muted">Essayez de modifier vos critères de recherche</p>
+                        <a href="{{ path('anime_index') }}" class="btn btn-primary">Voir tous les animes</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        
+        {# Sidebar #}
+        <div class="col-lg-3">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-filter me-2"></i>Filtres avancés
+                    </h5>
+                    
+                    <form method="GET">
+                        {# Preserve current search and letter #}
+                        {% if search %}
+                            <input type="hidden" name="search" value="{{ search }}">
+                        {% endif %}
+                        {% if letter %}
+                            <input type="hidden" name="letter" value="{{ letter }}">
+                        {% endif %}
+                        {% if sort %}
+                            <input type="hidden" name="sort" value="{{ sort }}">
+                        {% endif %}
+                        
+                        {# Genre Filter #}
+                        <div class="mb-3">
+                            <label class="form-label">Genre</label>
+                            <select name="genre" class="form-select">
+                                <option value="">Tous les genres</option>
+                                {% for g in genres %}
+                                    <option value="{{ g }}" {{ genre == g ? 'selected' : '' }}>{{ g }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        {# Year Filter #}
+                        <div class="mb-3">
+                            <label class="form-label">Année</label>
+                            <select name="year" class="form-select">
+                                <option value="">Toutes les années</option>
+                                {% for y in years %}
+                                    <option value="{{ y }}" {{ year == y ? 'selected' : '' }}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Appliquer</button>
+                    </form>
+                </div>
+            </div>
+            
+            {# Quick Stats #}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-chart-bar me-2"></i>Statistiques
+                    </h5>
+                    {% if pagination.totalItemCount is defined %}
+                        <div class="d-flex justify-content-between">
+                            <span>Total animes:</span>
+                            <strong>{{ pagination.totalItemCount }}</strong>
+                        </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between">
+                        <span>Genres disponibles:</span>
+                        <strong>{{ genres|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Années couvertes:</span>
+                        <strong>{{ years|length }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Custom CSS #}
+<style>
+.anime-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.anime-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+@media (max-width: 768px) {
+    .col-4 img, .col-4 div {
+        height: 150px !important;
+    }
+    
+    .card-body {
+        padding: 0.75rem !important;
+    }
+}
+</style>
+
+{# JavaScript for dynamic sorting #}
+<script>
+function changeSortOrder(sort) {
+    const url = new URL(window.location);
+    url.searchParams.set('sort', sort);
+    window.location.href = url.toString();
+}
+</script>
+{% endblock %}

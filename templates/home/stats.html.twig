@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <h1 class="mb-4">Statistiques du site</h1>
+    
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ stats.animes.total }}</h3>
+                    <p class="card-text">Animes référencés</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ stats.mangas.total }}</h3>
+                    <p class="card-text">Mangas référencés</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title">{{ stats.critiques.total }}</h3>
+                    <p class="card-text">Critiques publiées</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Top Animes</h5>
+                </div>
+                <div class="card-body">
+                    {% if stats.animes.top_rated %}
+                        <ul class="list-unstyled">
+                            {% for anime in stats.animes.top_rated %}
+                                <li class="mb-2">{{ anime.titre ?? 'N/A' }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">Aucun anime trouvé</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Top Mangas</h5>
+                </div>
+                <div class="card-body">
+                    {% if stats.mangas.top_rated %}
+                        <ul class="list-unstyled">
+                            {% for manga in stats.mangas.top_rated %}
+                                <li class="mb-2">{{ manga.titre ?? 'N/A' }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">Aucun manga trouvé</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

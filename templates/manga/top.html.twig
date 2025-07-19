@@ -1,0 +1,161 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Top Mangas - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-trophy text-warning me-2"></i>Top Mangas</h1>
+        <a href="{{ path('manga_index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-list me-2"></i>Tous les mangas
+        </a>
+    </div>
+
+    {% if pagination.items %}
+        <div class="row">
+            {% for manga in pagination.items %}
+                <div class="col-12 mb-3">
+                    <div class="card manga-ranking-card">
+                        <div class="row g-0">
+                            <div class="col-auto d-flex align-items-center ps-3">
+                                <div class="ranking-number">
+                                    #{{ loop.index + (pagination.currentPageNumber - 1) * pagination.itemNumberPerPage }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                {% if manga.image %}
+                                    <img src="{{ asset(manga.image) }}" 
+                                         class="img-fluid" 
+                                         alt="{{ manga.titre }}"
+                                         style="width: 80px; height: 120px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light d-flex align-items-center justify-content-center" 
+                                         style="width: 80px; height: 120px;">
+                                        <i class="fas fa-book fa-2x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col">
+                                <div class="card-body py-3">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h5 class="card-title mb-1">
+                                                <a href="{{ path('manga_show', {slug: manga.slug}) }}" 
+                                                   class="text-decoration-none text-dark">{{ manga.titre }}</a>
+                                            </h5>
+                                            {% if manga.titreOriginal and manga.titreOriginal != manga.titre %}
+                                                <p class="text-muted mb-2 small">{{ manga.titreOriginal }}</p>
+                                            {% endif %}
+                                            
+                                            <div class="d-flex flex-wrap gap-2 mb-2">
+                                                {% if manga.annee %}
+                                                    <span class="badge bg-secondary">{{ manga.annee }}</span>
+                                                {% endif %}
+                                                {% if manga.nbVolumes %}
+                                                    <span class="badge bg-info">{{ manga.nbVolumes }} vol</span>
+                                                {% endif %}
+                                                {% if manga.auteur %}
+                                                    <span class="badge bg-light text-dark">{{ manga.auteur }}</span>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            {% if manga.synopsis %}
+                                                <p class="card-text text-muted small">
+                                                    {{ manga.synopsis|length > 150 ? manga.synopsis|slice(0, 150) ~ '...' : manga.synopsis }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <div class="h-100 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    {% if manga.moyenneNotes %}
+                                                        <div class="rating-display mb-2">
+                                                            <span class="h4 text-warning">
+                                                                <i class="fas fa-star"></i> {{ manga.moyenneNotes }}
+                                                            </span>
+                                                            <small class="text-muted d-block">/10</small>
+                                                        </div>
+                                                    {% endif %}
+                                                    {% if manga.nbReviews %}
+                                                        <small class="text-muted">{{ manga.nbReviews }} avis</small>
+                                                    {% endif %}
+                                                </div>
+                                                
+                                                <div class="mt-2">
+                                                    {% if manga.nbClics %}
+                                                        <small class="text-muted d-block">
+                                                            <i class="fas fa-eye me-1"></i>{{ manga.nbClics|number_format }} vues
+                                                        </small>
+                                                    {% endif %}
+                                                    {% if manga.classementPopularite %}
+                                                        <small class="text-muted d-block">
+                                                            <i class="fas fa-fire me-1"></i>Popularité #{{ manga.classementPopularite }}
+                                                        </small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {# Pagination #}
+        {% if pagination.pageCount > 1 %}
+            <div class="d-flex justify-content-center mt-4">
+                {{ knp_pagination_render(pagination) }}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Aucun manga classé trouvé</h4>
+            <p class="text-muted">Les mangas apparaîtront ici une fois qu'ils auront reçu des notes.</p>
+            <a href="{{ path('manga_index') }}" class="btn btn-primary">Voir tous les mangas</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.manga-ranking-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.manga-ranking-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.ranking-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #6c757d;
+    min-width: 50px;
+    text-align: center;
+}
+
+.rating-display {
+    text-align: center;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+@media (max-width: 768px) {
+    .ranking-number {
+        font-size: 1.2rem;
+        min-width: 40px;
+    }
+    
+    .col-auto img, .col-auto div {
+        width: 60px !important;
+        height: 90px !important;
+    }
+}
+</style>
+{% endblock %}

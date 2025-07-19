@@ -1,0 +1,252 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Anime-Kun - Base de données Anime et Manga{% endblock %}
+
+{% block body %}
+<div class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">
+                    Découvrez l'univers des animes et mangas
+                </h1>
+                <p class="lead mb-4">
+                    {{ stats.total_animes }} animes, {{ stats.total_mangas }} mangas et {{ stats.total_critiques }} critiques 
+                    vous attendent sur la plus grande base de données francophone.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{{ path('anime_index') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-tv me-2"></i>Explorer les animes
+                    </a>
+                    <a href="{{ path('manga_index') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-book me-2"></i>Découvrir les mangas
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="{{ asset('images/hero-anime.png') }}" alt="Anime Hero" class="img-fluid" style="max-height: 400px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    {# Recent Animes Section #}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h3 mb-0">
+                <i class="fas fa-tv text-primary me-2"></i>Animes récents
+            </h2>
+            <a href="{{ path('anime_index') }}" class="btn btn-outline-primary">
+                Voir tous les animes <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        
+        <div class="row g-4">
+            {% for anime in recent_animes %}
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                    <div class="card h-100 anime-card">
+                        <div class="position-relative">
+                            <img src="{{ anime.image ? asset('uploads/anime/' ~ anime.image) : asset('images/no-image.jpg') }}" 
+                                 class="card-img-top" alt="{{ anime.titre }}" style="height: 200px; object-fit: cover;">
+                            {% if anime.noteGenerale %}
+                                <span class="badge bg-success position-absolute top-0 end-0 m-2">
+                                    {{ (anime.noteGenerale)|number_format(1) }}/20
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-truncate mb-1" title="{{ anime.titre }}">
+                                <a href="{{ path('anime_show', {slug: anime.niceUrl}) }}" class="text-decoration-none">
+                                    {{ anime.titre }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">{{ anime.annee ?? 'N/A' }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {# Recent Mangas Section #}
+    <section class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h3 mb-0">
+                <i class="fas fa-book text-success me-2"></i>Mangas récents
+            </h2>
+            <a href="{{ path('manga_index') }}" class="btn btn-outline-success">
+                Voir tous les mangas <i class="fas fa-arrow-right ms-1"></i>
+            </a>
+        </div>
+        
+        <div class="row g-4">
+            {% for manga in recent_mangas %}
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                    <div class="card h-100 manga-card">
+                        <div class="position-relative">
+                            <img src="{{ manga.image ? asset('uploads/manga/' ~ manga.image) : asset('images/no-image.jpg') }}" 
+                                 class="card-img-top" alt="{{ manga.titre }}" style="height: 200px; object-fit: cover;">
+                            {% if manga.noteGenerale %}
+                                <span class="badge bg-success position-absolute top-0 end-0 m-2">
+                                    {{ (manga.noteGenerale)|number_format(1) }}/20
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-truncate mb-1" title="{{ manga.titre }}">
+                                <a href="{{ path('manga_show', {slug: manga.niceUrl}) }}" class="text-decoration-none">
+                                    {{ manga.titre }}
+                                </a>
+                            </h6>
+                            <small class="text-muted">{{ manga.annee ?? 'N/A' }}</small>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    {# Top Lists and Reviews #}
+    <div class="row g-4">
+        {# Top Animes #}
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-trophy me-2"></i>Top Animes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for anime in top_animes %}
+                            <div class="list-group-item d-flex align-items-center">
+                                <span class="badge bg-primary me-3">{{ loop.index }}</span>
+                                <img src="{{ anime.image ? asset('uploads/anime/' ~ anime.image) : asset('images/no-image.jpg') }}" 
+                                     class="rounded me-3" width="40" height="40" style="object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <a href="{{ path('anime_show', {slug: anime.niceUrl}) }}" class="text-decoration-none">
+                                        <strong>{{ anime.titre }}</strong>
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ anime.annee }} • Note: {{ (anime.noteGenerale)|number_format(1) }}/20</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ path('anime_top') }}" class="btn btn-outline-primary btn-sm">
+                            Voir le classement complet
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Recent Reviews #}
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-comment me-2"></i>Critiques récentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for critique in recent_critiques %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="mb-1">
+                                    <a href="{{ path('critique_show', {id: critique.id}) }}" class="text-decoration-none">
+                                        {{ critique.titre }}
+                                    </a>
+                                </h6>
+                                <span class="badge bg-{{ critique.note >= 16 ? 'success' : (critique.note >= 12 ? 'primary' : (critique.note >= 8 ? 'warning' : 'danger')) }}">
+                                    {{ critique.note }}/20
+                                </span>
+                            </div>
+                            <small class="text-muted">
+                                Par {{ critique.user.username }} • {{ critique.dateCreation|date('d/m/Y') }}
+                            </small>
+                            <p class="small mt-2 mb-0">{{ critique.contenu|slice(0, 120) }}...</p>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">Aucune critique récente.</p>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{{ path('critiques_index') }}" class="btn btn-outline-info btn-sm">
+                            Toutes les critiques
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Quick Stats #}
+    <section class="my-5">
+        <div class="row text-center g-4">
+            <div class="col-md-3">
+                <div class="card border-primary">
+                    <div class="card-body">
+                        <i class="fas fa-tv text-primary fs-1 mb-3"></i>
+                        <h3 class="text-primary">{{ stats.total_animes }}</h3>
+                        <p class="text-muted mb-0">Animes référencés</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-success">
+                    <div class="card-body">
+                        <i class="fas fa-book text-success fs-1 mb-3"></i>
+                        <h3 class="text-success">{{ stats.total_mangas }}</h3>
+                        <p class="text-muted mb-0">Mangas référencés</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-info">
+                    <div class="card-body">
+                        <i class="fas fa-comment text-info fs-1 mb-3"></i>
+                        <h3 class="text-info">{{ stats.total_critiques }}</h3>
+                        <p class="text-muted mb-0">Critiques publiées</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-warning">
+                    <div class="card-body">
+                        <i class="fas fa-users text-warning fs-1 mb-3"></i>
+                        <h3 class="text-warning">{{ app.user ? '100+' : 'Rejoignez-nous!' }}</h3>
+                        <p class="text-muted mb-0">Membres actifs</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        }
+        
+        .anime-card:hover, .manga-card:hover {
+            transform: translateY(-5px);
+            transition: transform 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .card-img-top {
+            transition: transform 0.3s ease;
+        }
+        
+        .anime-card:hover .card-img-top,
+        .manga-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+    </style>
+{% endblock %}

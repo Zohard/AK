@@ -1,0 +1,232 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Recherche: {{ query }} - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    <h1>Résultats de recherche pour "{{ query }}"</h1>
+    
+    {% if query %}
+        {# Navigation Tabs #}
+        <ul class="nav nav-tabs mb-4" id="searchTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="animes-tab" data-bs-toggle="tab" data-bs-target="#animes" type="button" role="tab" aria-controls="animes" aria-selected="true">
+                    <i class="fas fa-tv me-2"></i>Animes ({{ animes|length }})
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="mangas-tab" data-bs-toggle="tab" data-bs-target="#mangas" type="button" role="tab" aria-controls="mangas" aria-selected="false">
+                    <i class="fas fa-book me-2"></i>Mangas ({{ mangas|length }})
+                </button>
+            </li>
+        </ul>
+
+        {# Tab Content #}
+        <div class="tab-content" id="searchTabContent">
+            {# Animes Tab #}
+            <div class="tab-pane fade show active" id="animes" role="tabpanel" aria-labelledby="animes-tab">
+                <div id="anime-results">
+                    {% if animes %}
+                        <div class="row">
+                            {% for anime in animes %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="row g-0 h-100">
+                                            <div class="col-4">
+                                                {% if anime.image %}
+                                                    <img src="{{ asset(anime.image) }}" 
+                                                         class="img-fluid rounded-start h-100" 
+                                                         alt="{{ anime.titre }}"
+                                                         style="width: 100%; height: 150px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-light d-flex align-items-center justify-content-center rounded-start h-100" 
+                                                         style="height: 150px;">
+                                                        <i class="fas fa-image fa-2x text-muted"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-8">
+                                                <div class="card-body p-3 d-flex flex-column h-100">
+                                                    <h6 class="card-title mb-2">
+                                                        <a href="{{ path('anime_show', {slug: anime.slug}) }}" 
+                                                           class="text-decoration-none text-dark">{{ anime.titre }}</a>
+                                                    </h6>
+                                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                                        <span class="badge bg-primary">Anime</span>
+                                                        {% if anime.annee %}
+                                                            <span class="badge bg-secondary">{{ anime.annee }}</span>
+                                                        {% endif %}
+                                                        {% if anime.nbEpisodes %}
+                                                            <span class="badge bg-info">{{ anime.nbEpisodes }}ep</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="mt-auto">
+                                                        {% if anime.statut %}
+                                                            <small class="text-muted d-block">{{ anime.statut }}</small>
+                                                        {% endif %}
+                                                        {% if anime.noteGenerale %}
+                                                            <small class="text-primary">
+                                                                <i class="fas fa-star"></i> {{ anime.noteGenerale }}/10
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-tv fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aucun anime trouvé pour "{{ query }}"</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {# Mangas Tab #}
+            <div class="tab-pane fade" id="mangas" role="tabpanel" aria-labelledby="mangas-tab">
+                <div id="manga-results">
+                    {% if mangas %}
+                        <div class="row">
+                            {% for manga in mangas %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="row g-0 h-100">
+                                            <div class="col-4">
+                                                {% if manga.image %}
+                                                    <img src="{{ asset(manga.image) }}" 
+                                                         class="img-fluid rounded-start h-100" 
+                                                         alt="{{ manga.titre }}"
+                                                         style="width: 100%; height: 150px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-light d-flex align-items-center justify-content-center rounded-start h-100" 
+                                                         style="height: 150px;">
+                                                        <i class="fas fa-book fa-2x text-muted"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="col-8">
+                                                <div class="card-body p-3 d-flex flex-column h-100">
+                                                    <h6 class="card-title mb-2">
+                                                        <a href="{{ path('manga_show', {slug: manga.slug}) }}" 
+                                                           class="text-decoration-none text-dark">{{ manga.titre }}</a>
+                                                    </h6>
+                                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                                        <span class="badge bg-success">Manga</span>
+                                                        {% if manga.annee %}
+                                                            <span class="badge bg-secondary">{{ manga.annee }}</span>
+                                                        {% endif %}
+                                                        {% if manga.nbVolumes %}
+                                                            <span class="badge bg-info">{{ manga.nbVolumes }}vol</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="mt-auto">
+                                                        {% if manga.statut %}
+                                                            <small class="text-muted d-block">{{ manga.statut }}</small>
+                                                        {% endif %}
+                                                        {% if manga.noteGenerale %}
+                                                            <small class="text-success">
+                                                                <i class="fas fa-star"></i> {{ manga.noteGenerale }}/10
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">Aucun manga trouvé pour "{{ query }}"</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Veuillez entrer un terme de recherche.</p>
+        </div>
+    {% endif %}
+</div>
+
+{# Custom CSS for better styling #}
+<style>
+.card-title a:hover {
+    color: #0d6efd !important;
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.nav-tabs .nav-link {
+    color: #6c757d;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #0d6efd;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .col-4 img, .col-4 div {
+        height: 120px !important;
+    }
+    
+    .card-body {
+        padding: 0.75rem !important;
+    }
+    
+    .badge {
+        font-size: 0.65em;
+    }
+}
+</style>
+
+{# Include Bootstrap JS for tabs functionality #}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+{# Auto-switch to manga tab if URL has #mangas anchor #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if URL has #mangas anchor
+    if (window.location.hash === '#mangas') {
+        const mangaTab = new bootstrap.Tab(document.getElementById('mangas-tab'));
+        mangaTab.show();
+    }
+    
+    // Update URL when tab changes
+    document.querySelectorAll('#searchTabs button[data-bs-toggle="tab"]').forEach(function(tab) {
+        tab.addEventListener('shown.bs.tab', function(e) {
+            const target = e.target.getAttribute('data-bs-target');
+            if (target === '#mangas') {
+                window.history.replaceState(null, null, '#mangas');
+            } else {
+                window.history.replaceState(null, null, '#animes');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

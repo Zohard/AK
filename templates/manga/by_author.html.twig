@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mangas de {{ auteur }} - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('manga_index') }}">Mangas</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ auteur }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="fas fa-user me-2"></i>{{ auteur }}</h1>
+            {% if pagination.totalItemCount is defined %}
+                <p class="text-muted mb-0">{{ pagination.totalItemCount }} manga(s)</p>
+            {% endif %}
+        </div>
+        <a href="{{ path('manga_index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-list me-2"></i>Tous les mangas
+        </a>
+    </div>
+
+    {% if pagination.items %}
+        <div class="row">
+            {% for manga in pagination.items %}
+                <div class="col-md-6 col-xl-4 mb-4">
+                    <div class="card h-100 manga-card">
+                        <div class="row g-0 h-100">
+                            <div class="col-4">
+                                {% if manga.image %}
+                                    <img src="{{ asset(manga.image) }}" 
+                                         class="img-fluid rounded-start h-100" 
+                                         alt="{{ manga.titre }}"
+                                         style="width: 100%; height: 200px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-light d-flex align-items-center justify-content-center rounded-start h-100" 
+                                         style="height: 200px;">
+                                        <i class="fas fa-book fa-2x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-8">
+                                <div class="card-body p-3 d-flex flex-column h-100">
+                                    <h6 class="card-title mb-2">
+                                        <a href="{{ path('manga_show', {slug: manga.slug}) }}" 
+                                           class="text-decoration-none text-dark">{{ manga.titre }}</a>
+                                    </h6>
+                                    
+                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                        {% if manga.annee %}
+                                            <span class="badge bg-secondary">{{ manga.annee }}</span>
+                                        {% endif %}
+                                        {% if manga.nbVolumes %}
+                                            <span class="badge bg-info">{{ manga.nbVolumes }} vol</span>
+                                        {% endif %}
+                                        {% if manga.statutVol %}
+                                            <span class="badge bg-success">{{ manga.statutVol }}</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if manga.synopsis %}
+                                        <p class="card-text small text-muted mb-2">
+                                            {{ manga.synopsis|length > 80 ? manga.synopsis|slice(0, 80) ~ '...' : manga.synopsis }}
+                                        </p>
+                                    {% endif %}
+                                    
+                                    <div class="mt-auto d-flex justify-content-between align-items-end">
+                                        {% if manga.editeur %}
+                                            <small class="text-muted">{{ manga.editeur }}</small>
+                                        {% endif %}
+                                        {% if manga.moyenneNotes %}
+                                            <small class="text-warning">
+                                                <i class="fas fa-star"></i> {{ manga.moyenneNotes }}/10
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {# Pagination #}
+        {% if pagination.pageCount > 1 %}
+            <div class="d-flex justify-content-center mt-4">
+                {{ knp_pagination_render(pagination) }}
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-user fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Aucun manga trouvé pour cet auteur</h4>
+            <p class="text-muted">{{ auteur }} n'a pas encore de manga dans notre base de données.</p>
+            <a href="{{ path('manga_index') }}" class="btn btn-primary">Voir tous les mangas</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.manga-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.manga-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+@media (max-width: 768px) {
+    .col-4 img, .col-4 div {
+        height: 150px !important;
+    }
+    
+    .card-body {
+        padding: 0.75rem !important;
+    }
+}
+</style>
+{% endblock %}

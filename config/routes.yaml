@@ -1,0 +1,110 @@
+# Home routes
+app_homepage:
+    path: /
+    controller: App\Controller\HomeController::index
+
+app_stats:
+    path: /stats
+    controller: App\Controller\HomeController::stats
+
+app_about:
+    path: /about
+    controller: App\Controller\HomeController::about
+
+app_contact:
+    path: /contact
+    controller: App\Controller\HomeController::contact
+
+anime_index:
+    path: /animes
+    controller: App\Controller\AnimeController::index
+
+anime_top:
+    path: /animes/top
+    controller: App\Controller\AnimeController::top
+
+anime_by_season:
+    path: /animes/season/{season}/{year}
+    controller: App\Controller\AnimeController::bySeason
+
+manga_index:
+    path: /mangas
+    controller: App\Controller\MangaController::index
+
+manga_top:
+    path: /mangas/top
+    controller: App\Controller\MangaController::top
+
+anime_show:
+    path: /anime/{slug}
+    controller: App\Controller\AnimeController::show
+
+manga_show:
+    path: /manga/{slug}
+    controller: App\Controller\MangaController::show
+
+# Critique routes
+critique_index:
+    path: /critiques
+    controller: App\Controller\CritiqueController::index
+
+critiques_index:
+    path: /critiques
+    controller: App\Controller\CritiqueController::index
+
+critique_show:
+    path: /critique/{id}
+    controller: App\Controller\CritiqueController::show
+
+# User routes
+user_profile:
+    path: /user/profile
+    controller: App\Controller\UserController::profile
+
+user_anime_list:
+    path: /user/anime-list
+    controller: App\Controller\UserController::animeList
+
+user_manga_list:
+    path: /user/manga-list
+    controller: App\Controller\UserController::mangaList
+
+users_index:
+    path: /users
+    controller: App\Controller\UserController::index
+
+# Admin routes
+admin_dashboard:
+    path: /admin
+    controller: App\Controller\AdminController::dashboard
+
+# Auth routes
+app_login:
+    path: /login
+    controller: App\Controller\SecurityController::login
+
+app_logout:
+    path: /logout
+    controller: App\Controller\SecurityController::logout
+
+app_register:
+    path: /register
+    controller: App\Controller\SecurityController::register
+
+# Legacy URL compatibility (optional - for SEO migration)
+legacy_anime:
+    path: /anime.php
+    controller: App\Controller\LegacyController::animeRedirect
+
+legacy_manga:
+    path: /manga.php  
+    controller: App\Controller\LegacyController::mangaRedirect
+
+legacy_critique:
+    path: /critique.php
+    controller: App\Controller\LegacyController::critiqueRedirect
+
+# Global search route
+search_global:
+    path: /search
+    controller: App\Controller\SearchController::globalSearch

@@ -1,0 +1,277 @@
+<?php
+
+namespace App\Command;
+
+use App\Entity\Manga;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Helper\ProgressBar;
+use PDO;
+use Exception;
+use DateTime;
+
+class MigrateMangaCommand extends Command
+{
+    private $entityManager;
+    private $batchSize = 50;
+
+    public function __construct(EntityManagerInterface $entityManager)
+    {
+        $this->entityManager = $entityManager;
+        parent::__construct();
+    }
+
+    protected function configure()
+    {
+        $this
+            ->setName('app:migrate-manga')
+            ->setDescription('Migrate manga data from legacy database')
+            ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Database host', 'localhost')
+            ->addOption('port', null, InputOption::VALUE_REQUIRED, 'Database port', '3306')
+            ->addOption('database', null, InputOption::VALUE_REQUIRED, 'Database name', 'anime_kun')
+            ->addOption('username', null, InputOption::VALUE_REQUIRED, 'Database username', 'root')
+            ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Database password', '')
+            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Run without making changes')
+            ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Limit number of manga to import', null);
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $host = $input->getOption('host');
+        $port = $input->getOption('port');
+        $database = $input->getOption('database');
+        $username = $input->getOption('username');
+        $password = $input->getOption('password');
+        $dryRun = $input->getOption('dry-run');
+        $limit = $input->getOption('limit');
+
+        if ($dryRun) {
+            $output->writeln('<comment>Running in DRY RUN mode - no changes will be made</comment>');
+        }
+
+        try {
+            $dsn = "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4";
+            $pdo = new PDO($dsn, $username, $password, array(
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ));
+
+            $output->writeln('<info>Connected to legacy database</info>');
+
+            $this->migrateManga($pdo, $output, $dryRun, $limit);
+
+            $output->writeln('<info>Manga migration completed successfully</info>');
+            return 0;
+
+        } catch (Exception $e) {
+            $output->writeln('<error>Migration failed: ' . $e->getMessage() . '</error>');
+            return 1;
+        }
+    }
+
+    private function migrateManga(PDO $pdo, OutputInterface $output, $dryRun = false, $limit = null)
+    {
+        $output->writeln('<comment>Migrating Manga Data</comment>');
+
+        // Try different possible table structures
+        $queries = array(
+            // Standard ak_mangas structure
+            "SELECT id_manga, nice_url, titre, auteur, annee, origine, titre_orig, titre_fr, 
+                    titres_alternatifs, licence, nb_volumes, nb_vol, statut_vol, synopsis, 
+                    image, editeur, isbn, precisions, tags, nb_clics, nb_clics_day, 
+                    nb_clics_week, nb_clics_month, nb_reviews, LABEL, MoyenneNotes, 
+                    lienforum, statut, fiche_complete, date_ajout, date_modification, 
+                    latest_cache, classement_popularite, variation_popularite
+             FROM ak_mangas WHERE statut = 1",
+
+            // Alternative manga table structure
+            "SELECT id as id_manga, slug as nice_url, title as titre, author as auteur, 
+                    year as annee, origin as origine, original_title as titre_orig, 
+                    french_title as titre_fr, alternative_titles as titres_alternatifs, 
+                    licensed as licence, volume_count as nb_volumes, nb_vol, volume_status as statut_vol, 
+                    description as synopsis, image, publisher as editeur, isbn, details as precisions, 
+                    tags, click_count as nb_clics, daily_clicks as nb_clics_day, 
+                    weekly_clicks as nb_clics_week, monthly_clicks as nb_clics_month, 
+                    review_count as nb_reviews, label_id as LABEL, average_rating as MoyenneNotes, 
+                    forum_link as lienforum, status as statut, complete_sheet as fiche_complete, 
+                    created_at as date_ajout, updated_at as date_modification, 
+                    cache_timestamp as latest_cache, popularity_rank as classement_popularite, 
+                    popularity_variation as variation_popularite
+             FROM mangas WHERE status = 1",
+
+            // Simple manga table
+            "SELECT * FROM ak_mangas LIMIT 5"
+        );
+
+        $data = null;
+        $successQuery = null;
+
+        foreach ($queries as $index => $query) {
+            try {
+                $output->writeln("Trying query structure " . ($index + 1) . "...");
+                
+                if ($limit) {
+                    $query .= " LIMIT " . (int)$limit;
+                }
+                
+                $stmt = $pdo->prepare($query);
+                $stmt->execute();
+                $data = $stmt->fetchAll();
+                $successQuery = $index + 1;
+                break;
+            } catch (Exception $e) {
+                $output->writeln("Query " . ($index + 1) . " failed: " . $e->getMessage());
+                continue;
+            }
+        }
+
+        if (!$data) {
+            throw new Exception('No valid manga table structure found');
+        }
+
+        $output->writeln("<info>Found manga data using query structure {$successQuery}</info>");
+        $output->writeln("Found " . count($data) . " manga records");
+
+        if (empty($data)) {
+            $output->writeln('<comment>No manga data found to import</comment>');
+            return;
+        }
+
+        $progressBar = new ProgressBar($output, count($data));
+        $progressBar->start();
+
+        $imported = 0;
+        $skipped = 0;
+        $errors = 0;
+
+        foreach ($data as $index => $row) {
+            try {
+                if (empty($row['titre'])) {
+                    $skipped++;
+                    $progressBar->advance();
+                    continue;
+                }
+
+                if (!$dryRun) {
+                    $manga = $this->createMangaFromRow($row);
+                    $this->entityManager->persist($manga);
+
+                    if (($index + 1) % $this->batchSize === 0) {
+                        $this->entityManager->flush();
+                        $this->entityManager->clear();
+                    }
+                }
+
+                $imported++;
+                $progressBar->advance();
+
+            } catch (Exception $e) {
+                $errors++;
+                $output->writeln("\nError importing manga '{$row['titre']}': " . $e->getMessage());
+                $progressBar->advance();
+            }
+        }
+
+        if (!$dryRun) {
+            $this->entityManager->flush();
+            $this->entityManager->clear();
+        }
+
+        $progressBar->finish();
+        $output->writeln("\n");
+
+        $output->writeln("Results:");
+        $output->writeln("- Imported: $imported");
+        $output->writeln("- Skipped: $skipped");
+        $output->writeln("- Errors: $errors");
+        $output->writeln("- Total: " . count($data));
+    }
+
+    private function createMangaFromRow(array $row)
+    {
+        $manga = new Manga();
+
+        // Basic information
+        $manga->setSlug(isset($row['nice_url']) ? $row['nice_url'] : null);
+        $manga->setTitre($row['titre']);
+        $manga->setAuteur(isset($row['auteur']) ? $row['auteur'] : null);
+        $manga->setAnnee(isset($row['annee']) ? $row['annee'] : null);
+        $manga->setOrigine(isset($row['origine']) ? $row['origine'] : null);
+        $manga->setTitreOriginal(isset($row['titre_orig']) ? $row['titre_orig'] : null);
+        $manga->setTitreFrancais(isset($row['titre_fr']) ? $row['titre_fr'] : null);
+        $manga->setTitresAlternatifs(isset($row['titres_alternatifs']) ? $row['titres_alternatifs'] : null);
+
+        // Volume information
+        $manga->setLicence((int)(isset($row['licence']) ? $row['licence'] : 0));
+        $manga->setNbVolumes(isset($row['nb_volumes']) ? $row['nb_volumes'] : null);
+        $manga->setNbVol((int)(isset($row['nb_vol']) ? $row['nb_vol'] : 0));
+        $manga->setStatutVol(isset($row['statut_vol']) ? $row['statut_vol'] : null);
+
+        // Content
+        $manga->setSynopsis(isset($row['synopsis']) ? $row['synopsis'] : null);
+        
+        // Image handling - normalize path like anime import
+        $imagePath = isset($row['image']) ? $row['image'] : null;
+        if ($imagePath) {
+            // Remove legacy path patterns and normalize to /uploads/manga/
+            $imagePath = preg_replace('/^.*?([^\/]+\.(jpg|jpeg|png|gif|webp))$/i', '/uploads/manga/$1', $imagePath);
+        }
+        $manga->setImage($imagePath);
+
+        // Publishing information
+        $manga->setEditeur(isset($row['editeur']) ? $row['editeur'] : null);
+        $manga->setIsbn(isset($row['isbn']) ? $row['isbn'] : null);
+        $manga->setPrecisions(isset($row['precisions']) ? $row['precisions'] : null);
+        $manga->setTags(isset($row['tags']) ? $row['tags'] : '');
+
+        // Statistics
+        $manga->setNbClics((int)(isset($row['nb_clics']) ? $row['nb_clics'] : 0));
+        $manga->setNbClicsDay(isset($row['nb_clics_day']) ? $row['nb_clics_day'] : null);
+        $manga->setNbClicsWeek(isset($row['nb_clics_week']) ? $row['nb_clics_week'] : null);
+        $manga->setNbClicsMonth(isset($row['nb_clics_month']) ? $row['nb_clics_month'] : null);
+        $manga->setNbReviews((int)(isset($row['nb_reviews']) ? $row['nb_reviews'] : 0));
+
+        // Rating and classification
+        $manga->setLabel((int)(isset($row['LABEL']) ? $row['LABEL'] : 0));
+        $manga->setMoyenneNotes((float)(isset($row['MoyenneNotes']) ? $row['MoyenneNotes'] : 0.0));
+        $manga->setLienForum((int)(isset($row['lienforum']) ? $row['lienforum'] : 0));
+
+        // Status
+        $manga->setStatut((int)(isset($row['statut']) ? $row['statut'] : 1));
+        $manga->setFicheComplete(isset($row['fiche_complete']) ? $row['fiche_complete'] : null);
+
+        // Dates
+        $dateAjout = isset($row['date_ajout']) ? $row['date_ajout'] : null;
+        if ($dateAjout) {
+            if (is_numeric($dateAjout)) {
+                // Handle timestamp
+                $manga->setDateAjout(new DateTime('@' . $dateAjout));
+            } else {
+                try {
+                    // Check for invalid dates like -0001 or 0000
+                    if (strpos($dateAjout, '-0001') !== false || strpos($dateAjout, '0000-00-00') !== false) {
+                        $manga->setDateAjout(new DateTime());
+                    } else {
+                        $manga->setDateAjout(new DateTime($dateAjout));
+                    }
+                } catch (Exception $e) {
+                    $manga->setDateAjout(new DateTime());
+                }
+            }
+        } else {
+            $manga->setDateAjout(new DateTime());
+        }
+
+        $manga->setDateModification(isset($row['date_modification']) ? $row['date_modification'] : null);
+        $manga->setLatestCache(isset($row['latest_cache']) ? $row['latest_cache'] : null);
+
+        // Popularity
+        $manga->setClassementPopularite(isset($row['classement_popularite']) ? $row['classement_popularite'] : null);
+        $manga->setVariationPopularite(isset($row['variation_popularite']) ? $row['variation_popularite'] : '');
+
+        return $manga;
+    }
+}

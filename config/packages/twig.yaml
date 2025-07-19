@@ -1,0 +1,12 @@
+twig:
+    default_path: '%kernel.project_dir%/templates'
+    globals:
+        site_name: 'Anime-Kun'
+        site_url: '%env(SITE_URL)%'
+        images_base_url: '%env(IMAGES_BASE_URL)%'
+    form_themes:
+        - 'bootstrap_5_layout.html.twig'
+
+when@test:
+    twig:
+        strict_variables: true

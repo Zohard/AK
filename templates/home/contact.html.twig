@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contact - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <h1 class="mb-4">Nous contacter</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Envoyez-nous un message</h5>
+                    <form>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nom</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Sujet</label>
+                            <input type="text" class="form-control" id="subject" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" rows="5" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Envoyer</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Autres moyens de contact</h5>
+                    <p class="card-text">
+                        Vous pouvez également nous contacter via :
+                    </p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-envelope me-2"></i> contact@anime-kun.fr</li>
+                        <li><i class="fab fa-twitter me-2"></i> @AnimeKunOfficial</li>
+                        <li><i class="fab fa-discord me-2"></i> Discord Server</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

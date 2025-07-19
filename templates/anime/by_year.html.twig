@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Animes {{ year }} - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div class="container my-4">
+    <h1>Animes de {{ year }}</h1>
+    <p class="text-muted">Tous les animes sortis en {{ year }}</p>
+    
+    <div class="row">
+        <div class="col-md-8">
+            {% if pagination.items %}
+                <div class="row">
+                    {% for anime in pagination.items %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                {% if anime.image %}
+                                    <img src="{{ anime.image }}" class="card-img-top" alt="{{ anime.titre }}" style="height: 200px; object-fit: cover;">
+                                {% endif %}
+                                <div class="card-body d-flex flex-column">
+                                    <h6 class="card-title">{{ anime.titre }}</h6>
+                                    {% if anime.titreOriginal %}
+                                        <p class="card-text text-muted small">{{ anime.titreOriginal }}</p>
+                                    {% endif %}
+                                    
+                                    {% if anime.synopsis %}
+                                        <p class="card-text">{{ anime.synopsis|length > 100 ? anime.synopsis[:100] ~ '...' : anime.synopsis }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="mt-auto">
+                                        {% if anime.noteGenerale %}
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="badge bg-primary me-2">{{ anime.noteGenerale }}/10</span>
+                                                {% if anime.nbVotes %}
+                                                    <small class="text-muted">({{ anime.nbVotes }} votes)</small>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <p class="card-text">
+                                            <small class="text-muted">
+                                                {% if anime.nbEpisodes %}{{ anime.nbEpisodes }} épisodes{% endif %}
+                                                {% if anime.studio %} • {{ anime.studio }}{% endif %}
+                                            </small>
+                                        </p>
+                                        
+                                        {% if anime.genre %}
+                                            <p class="card-text">
+                                                <small class="text-muted">{{ anime.genre }}</small>
+                                            </p>
+                                        {% endif %}
+                                        
+                                        {% if anime.slug %}
+                                            <a href="{{ path('anime_show', {slug: anime.slug}) }}" class="btn btn-sm btn-outline-primary">Voir détails</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                {{ knp_pagination_render(pagination, 'pagination/custom_pagination.html.twig') }}
+            {% else %}
+                <div class="alert alert-info">
+                    <h5>Aucun anime trouvé</h5>
+                    <p>Il n'y a pas d'animes pour l'année {{ year }} dans la base de données.</p>
+                    <a href="{{ path('anime_index') }}" class="btn btn-primary">Voir tous les animes</a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Navigation par année</h5>
+                    
+                    <div class="btn-group w-100 mb-3" role="group">
+                        {% if year > 2000 %}
+                            <a href="{{ path('anime_by_year', {year: year - 1}) }}" 
+                               class="btn btn-outline-secondary btn-sm">{{ year - 1 }}</a>
+                        {% endif %}
+                        
+                        <span class="btn btn-secondary btn-sm disabled">{{ year }}</span>
+                        
+                        {% if year < date().format('Y') %}
+                            <a href="{{ path('anime_by_year', {year: year + 1}) }}" 
+                               class="btn btn-outline-secondary btn-sm">{{ year + 1 }}</a>
+                        {% endif %}
+                    </div>
+                    
+                    <h6>Décennies populaires</h6>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <a href="{{ path('anime_by_year', {year: 2020}) }}" class="btn btn-outline-primary btn-sm">2020s</a>
+                        <a href="{{ path('anime_by_year', {year: 2010}) }}" class="btn btn-outline-primary btn-sm">2010s</a>
+                        <a href="{{ path('anime_by_year', {year: 2000}) }}" class="btn btn-outline-primary btn-sm">2000s</a>
+                        <a href="{{ path('anime_by_year', {year: 1990}) }}" class="btn btn-outline-primary btn-sm">1990s</a>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a href="{{ path('anime_index') }}" class="btn btn-outline-primary btn-sm w-100">
+                            Tous les animes
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if pagination.items %}
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title">Statistiques</h6>
+                        <p class="card-text">
+                            <strong>{{ pagination.getTotalItemCount }}</strong> animes trouvés<br>
+                            <small class="text-muted">pour l'année {{ year }}</small>
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

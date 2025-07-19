@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}À propos - {{ parent() }}{% endblock %}
+
+{% block body %}
+<div class="container my-5">
+    <h1 class="mb-4">À propos d'Anime-Kun</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <p class="lead">
+                Anime-Kun est une base de données complète d'animes et mangas créée par et pour la communauté des fans de culture japonaise.
+            </p>
+            
+            <h2>Notre mission</h2>
+            <p>
+                Nous voulons offrir un espace où les passionnés peuvent découvrir, critiquer et partager leurs animes et mangas préférés.
+                Notre objectif est de créer la ressource la plus complète et fiable pour tous les fans.
+            </p>
+            
+            <h2>Fonctionnalités</h2>
+            <ul>
+                <li>Base de données exhaustive d'animes et mangas</li>
+                <li>Système de critiques et de notes communautaires</li>
+                <li>Listes personnalisées pour suivre vos lectures/visionnages</li>
+                <li>Statistiques et classements</li>
+                <li>Recherche avancée</li>
+            </ul>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Rejoignez-nous !</h5>
+                    <p class="card-text">
+                        Créez votre compte pour commencer à créer vos listes personnalisées et partager vos critiques.
+                    </p>
+                    <a href="{{ path('app_register') }}" class="btn btn-primary">S'inscrire</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
