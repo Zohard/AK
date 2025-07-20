@@ -18,7 +18,13 @@ class CritiqueRepository extends ServiceEntityRepository
 
     public function findRecentCritiques(int $limit): array
     {
-        return [];
+        return $this->createQueryBuilder('c')
+            ->where('c.statut = :status')
+            ->setParameter('status', 1) // Assuming 1 means approved
+            ->orderBy('c.dateCreation', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 
     public function getCritiqueCountByMonth(): array
@@ -52,5 +58,15 @@ class CritiqueRepository extends ServiceEntityRepository
         }
 
         return $qb;
+    }
+
+    public function getTotalCount(): int
+    {
+        return $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.statut = :status')
+            ->setParameter('status', 1) // Assuming 1 means approved
+            ->getQuery()
+            ->getSingleScalarResult();
     }
 }

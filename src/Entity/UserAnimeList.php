@@ -15,12 +15,12 @@ class UserAnimeList
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'animeLists')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
     #[ORM\ManyToOne(targetEntity: Anime::class, inversedBy: 'userLists')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(name: 'anime_id', referencedColumnName: 'id_anime', nullable: false)]
     private ?Anime $anime = null;
 
     #[ORM\Column(type: Types::STRING, length: 50)]

@@ -57,7 +57,7 @@
                         </div>
                         <div class="card-body p-2">
                             <h6 class="card-title text-truncate mb-1" title="{{ anime.titre }}">
-                                <a href="{{ path('anime_show', {slug: anime.niceUrl}) }}" class="text-decoration-none">
+                                <a href="{{ path('anime_show', {slug: anime.slug}) }}" class="text-decoration-none">
                                     {{ anime.titre }}
                                 </a>
                             </h6>
@@ -95,7 +95,7 @@
                         </div>
                         <div class="card-body p-2">
                             <h6 class="card-title text-truncate mb-1" title="{{ manga.titre }}">
-                                <a href="{{ path('manga_show', {slug: manga.niceUrl}) }}" class="text-decoration-none">
+                                <a href="{{ path('manga_show', {slug: manga.slug}) }}" class="text-decoration-none">
                                     {{ manga.titre }}
                                 </a>
                             </h6>
@@ -125,7 +125,7 @@
                                 <img src="{{ anime.image ? asset('uploads/anime/' ~ anime.image) : asset('images/no-image.jpg') }}" 
                                      class="rounded me-3" width="40" height="40" style="object-fit: cover;">
                                 <div class="flex-grow-1">
-                                    <a href="{{ path('anime_show', {slug: anime.niceUrl}) }}" class="text-decoration-none">
+                                    <a href="{{ path('anime_show', {slug: anime.slug}) }}" class="text-decoration-none">
                                         <strong>{{ anime.titre }}</strong>
                                     </a>
                                     <br>

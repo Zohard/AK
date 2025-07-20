@@ -50,19 +50,24 @@ class Anime
     #[ORM\Column(name: "nb_reviews", type: Types::INTEGER, nullable: true)]
     private ?int $nbVotes = null;
 
-    #[ORM\Column(name: "nice_url", type: Types::STRING, length: 255, nullable: true, unique: true)]
+    #[ORM\Column(name: "nice_url", type: Types::STRING, length: 255, nullable: true)]
     private ?string $slug = null;
 
-    #[ORM\Column(name: "date_ajout", type: Types::INTEGER)]
-    private ?int $dateAjout = null;
+    #[ORM\Column(name: "date_ajout", type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $dateAjout = null;
 
     #[ORM\Column(name: "date_modification", type: Types::INTEGER, nullable: true)]
-    private ?int $dateModification = null;
+    private ?int $dateModificationTimestamp = null;
 
 
     #[ORM\Column(name: "sources", type: Types::STRING, length: 50, nullable: true)]
     private ?string $source = null;
 
+    #[ORM\Column(type: Types::STRING, length: 100, nullable: true)]
+    private ?string $studio = null;
+
+    // Realisateur is handled via ak_business_to_animes relationship
+    // where type = 'Réalisation' - this is a computed property
 
     #[ORM\OneToMany(mappedBy: 'anime', targetEntity: Critique::class, cascade: ['persist'])]
     private Collection $critiques;
@@ -71,7 +76,11 @@ class Anime
     private Collection $screenshots;
 
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'animes')]
-    #[ORM\JoinTable(name: 'ak_anime_tags')]
+    #[ORM\JoinTable(
+        name: 'ak_anime_tags',
+        joinColumns: [new ORM\JoinColumn(name: 'anime_id', referencedColumnName: 'id_anime')],
+        inverseJoinColumns: [new ORM\JoinColumn(name: 'tag_id', referencedColumnName: 'id')]
+    )]
     private Collection $tags;
 
     #[ORM\OneToMany(mappedBy: 'anime', targetEntity: UserAnimeList::class, cascade: ['persist'])]
@@ -83,7 +92,7 @@ class Anime
         $this->screenshots = new ArrayCollection();
         $this->tags = new ArrayCollection();
         $this->userLists = new ArrayCollection();
-        $this->dateAjout = time();
+        $this->dateAjout = new \DateTime();
     }
 
     public function getId(): ?int
@@ -191,7 +200,6 @@ class Anime
         return $this;
     }
 
-
     public function getSlug(): ?string
     {
         return $this->slug;
@@ -205,23 +213,42 @@ class Anime
 
     public function getDateAjout(): ?\DateTimeInterface
     {
-        return $this->dateAjout ? new \DateTime('@' . $this->dateAjout) : null;
+        return $this->dateAjout;
     }
 
     public function setDateAjout(\DateTimeInterface $dateAjout): static
     {
-        $this->dateAjout = $dateAjout->getTimestamp();
+        $this->dateAjout = $dateAjout;
         return $this;
     }
 
     public function getDateModification(): ?\DateTimeInterface
     {
-        return $this->dateModification ? new \DateTime('@' . $this->dateModification) : null;
+        if ($this->dateModificationTimestamp === null) {
+            return null;
+        }
+        
+        return new \DateTime('@' . $this->dateModificationTimestamp);
     }
 
     public function setDateModification(?\DateTimeInterface $dateModification): static
     {
-        $this->dateModification = $dateModification ? $dateModification->getTimestamp() : null;
+        if ($dateModification === null) {
+            $this->dateModificationTimestamp = null;
+        } else {
+            $this->dateModificationTimestamp = $dateModification->getTimestamp();
+        }
+        return $this;
+    }
+    
+    public function getDateModificationTimestamp(): ?int
+    {
+        return $this->dateModificationTimestamp;
+    }
+    
+    public function setDateModificationTimestamp(?int $timestamp): static
+    {
+        $this->dateModificationTimestamp = $timestamp;
         return $this;
     }
 
@@ -237,6 +264,19 @@ class Anime
         return $this;
     }
 
+    public function getStudio(): ?string
+    {
+        return $this->studio;
+    }
+
+    public function setStudio(?string $studio): static
+    {
+        $this->studio = $studio;
+        return $this;
+    }
+
+    // Realisateur is computed from ak_business_to_animes relationship
+    // This would need a custom repository method to fetch from the relationship table
 
     /**
      * @return Collection<int, Critique>
@@ -351,7 +391,7 @@ class Anime
     #[ORM\PreUpdate]
     public function setDateModificationValue(): void
     {
-        $this->dateModification = time();
+        $this->dateModificationTimestamp = time();
     }
 
     public function __toString(): string

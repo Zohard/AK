@@ -19,11 +19,11 @@ class TopListItem
     private ?TopList $topList = null;
 
     #[ORM\ManyToOne(targetEntity: Anime::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(name: 'anime_id', referencedColumnName: 'id_anime', nullable: true)]
     private ?Anime $anime = null;
 
     #[ORM\ManyToOne(targetEntity: Manga::class)]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(name: 'manga_id', referencedColumnName: 'id_manga', nullable: true)]
     private ?Manga $manga = null;
 
     #[ORM\Column(type: Types::INTEGER)]

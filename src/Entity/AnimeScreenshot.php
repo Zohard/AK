@@ -15,7 +15,7 @@ class AnimeScreenshot
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Anime::class, inversedBy: 'screenshots')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(name: 'anime_id', referencedColumnName: 'id_anime', nullable: false)]
     private ?Anime $anime = null;
 
     #[ORM\Column(type: Types::STRING, length: 255)]

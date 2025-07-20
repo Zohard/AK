@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\MangaRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: MangaRepository::class)]
 #[ORM\Table(name: 'ak_mangas')]
@@ -103,7 +105,7 @@ class Manga
     private ?\DateTimeInterface $dateAjout = null;
 
     #[ORM\Column(name: 'date_modification', type: Types::INTEGER, nullable: true)]
-    private ?int $dateModification = null;
+    private ?int $dateModificationTimestamp = null;
 
     #[ORM\Column(name: 'latest_cache', type: Types::INTEGER, nullable: true)]
     private ?int $latestCache = null;
@@ -114,11 +116,24 @@ class Manga
     #[ORM\Column(name: 'variation_popularite', type: Types::TEXT)]
     private string $variationPopularite = '';
 
+    #[ORM\OneToMany(mappedBy: 'manga', targetEntity: Critique::class, cascade: ['persist'])]
+    private Collection $critiques;
+
+    #[ORM\OneToMany(mappedBy: 'manga', targetEntity: UserMangaList::class, cascade: ['persist'])]
+    private Collection $userLists;
+
     // Computed properties
     private ?float $noteGenerale = null;
     private ?string $genre = null;
     private bool $actif = true;
     private bool $visible = true;
+
+    public function __construct()
+    {
+        $this->critiques = new ArrayCollection();
+        $this->userLists = new ArrayCollection();
+        $this->dateAjout = new \DateTime();
+    }
 
     public function getId(): ?int
     {
@@ -444,14 +459,33 @@ class Manga
         return $this;
     }
 
-    public function getDateModification(): ?int
+    public function getDateModification(): ?\DateTimeInterface
     {
-        return $this->dateModification;
+        if ($this->dateModificationTimestamp === null) {
+            return null;
+        }
+        
+        return new \DateTime('@' . $this->dateModificationTimestamp);
     }
 
-    public function setDateModification(?int $dateModification): static
+    public function setDateModification(?\DateTimeInterface $dateModification): static
     {
-        $this->dateModification = $dateModification;
+        if ($dateModification === null) {
+            $this->dateModificationTimestamp = null;
+        } else {
+            $this->dateModificationTimestamp = $dateModification->getTimestamp();
+        }
+        return $this;
+    }
+    
+    public function getDateModificationTimestamp(): ?int
+    {
+        return $this->dateModificationTimestamp;
+    }
+    
+    public function setDateModificationTimestamp(?int $timestamp): static
+    {
+        $this->dateModificationTimestamp = $timestamp;
         return $this;
     }
 
@@ -531,5 +565,69 @@ class Manga
     {
         $this->visible = $visible;
         return $this;
+    }
+    
+    /**
+     * @return Collection<int, Critique>
+     */
+    public function getCritiques(): Collection
+    {
+        return $this->critiques;
+    }
+
+    public function addCritique(Critique $critique): static
+    {
+        if (!$this->critiques->contains($critique)) {
+            $this->critiques->add($critique);
+            $critique->setManga($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCritique(Critique $critique): static
+    {
+        if ($this->critiques->removeElement($critique)) {
+            if ($critique->getManga() === $this) {
+                $critique->setManga(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserMangaList>
+     */
+    public function getUserLists(): Collection
+    {
+        return $this->userLists;
+    }
+
+    public function addUserList(UserMangaList $userList): static
+    {
+        if (!$this->userLists->contains($userList)) {
+            $this->userLists->add($userList);
+            $userList->setManga($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserList(UserMangaList $userList): static
+    {
+        if ($this->userLists->removeElement($userList)) {
+            if ($userList->getManga() === $this) {
+                $userList->setManga(null);
+            }
+        }
+
+        return $this;
+    }
+
+    #[ORM\PreUpdate]
+    public function setDateModificationValue(): void
+    {
+        $this->dateModificationTimestamp = time();
     }
 }

@@ -216,4 +216,15 @@ class MangaRepository extends ServiceEntityRepository
             ->setParameter('statut', 1)
             ->orderBy('m.dateAjout', 'DESC');
     }
+
+    public function findRecentlyAdded(int $limit = 20): array
+    {
+        return $this->createQueryBuilder('m')
+            ->where('m.statut = :statut')
+            ->setParameter('statut', 1)
+            ->orderBy('m.dateAjout', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

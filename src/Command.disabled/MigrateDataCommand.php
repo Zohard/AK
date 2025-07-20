@@ -272,7 +272,7 @@ class MigrateDataCommand extends Command
                 $anime->setImage($imagePath);
                 $anime->setNoteGenerale($row['note_generale'] ?? null);
                 $anime->setNbVotes($row['nb_votes'] ?? 0);
-                $anime->setNiceUrl($row['nice_url'] ?? null);
+                $anime->setSlug($row['nice_url'] ?? null);
                 $anime->setStudio($row['studio'] ?? null);
                 $anime->setRealisateur($row['realisateur'] ?? null);
                 

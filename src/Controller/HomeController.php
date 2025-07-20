@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Repository\AnimeRepository;
 use App\Repository\MangaRepository;
+use App\Repository\CritiqueRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -12,7 +13,8 @@ class HomeController extends AbstractController
 {
     public function __construct(
         private AnimeRepository $animeRepository,
-        private MangaRepository $mangaRepository
+        private MangaRepository $mangaRepository,
+        private CritiqueRepository $critiqueRepository
     ) {}
 
     private function getRealData()
@@ -48,11 +50,11 @@ class HomeController extends AbstractController
                 'top_mangas' => $this->mangaRepository->findTopRated(5),
                 'recent_animes' => $this->animeRepository->findRecentlyAdded(6),
                 'recent_mangas' => $this->mangaRepository->findRecentlyAdded(6),
-                'recent_critiques' => [], // TODO: Add critique repository when available
+                'recent_critiques' => $this->critiqueRepository->findRecentCritiques(5),
                 'stats' => [
                     'total_animes' => $this->animeRepository->getTotalCount(),
                     'total_mangas' => $this->mangaRepository->getTotalCount(),
-                    'total_critiques' => 0, // TODO: Add critique repository when available
+                    'total_critiques' => $this->critiqueRepository->getTotalCount(),
                 ]
             ];
         } catch (\Exception $e) {
